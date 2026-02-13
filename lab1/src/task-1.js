@@ -3,7 +3,7 @@ function getFullName(user) {
 
   const initial1 = firstName[0] + "."; 
   
-  if (middleName === "") {
+  if (middleName) {
     const initial2 = middleName[0] + ".";
     return `${lastName} ${initial1} ${initial2}`;
   } else {
