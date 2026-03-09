@@ -1,0 +1,25 @@
+.card {
+  border: 1px solid #d1d5db;
+  padding: 16px;
+  margin-bottom: 16px;
+  background-color: white;
+}
+
+.cardLow { border-left: 6px solid #10b981; }
+.cardMedium { border-left: 6px solid #f59e0b; }
+.cardHigh { border-left: 6px solid #ef4444; }
+
+.title {
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+}
+
+.meta {
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
