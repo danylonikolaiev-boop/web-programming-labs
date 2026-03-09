@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import type { Task, TaskStatus } from "./types/task";
 import type { TaskFormData } from "./components/TaskForm/TaskForm";
 import TaskForm from "./components/TaskForm/TaskForm";
