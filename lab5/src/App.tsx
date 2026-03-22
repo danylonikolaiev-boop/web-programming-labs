@@ -20,6 +20,21 @@ function App() {
     },
   });
 
+  const upd_mutation = useMutation({
+    mutationFn: ({ id, completed }: { id: number; completed: boolean }) =>
+      todosApi.update(id, { completed }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
+    },
+  });
+
+  const del_mutation = useMutation({
+    mutationFn: (id: number) => todosApi.remove(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
+    },
+  });
+
   const AddTodo = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
@@ -68,13 +83,38 @@ function App() {
           <li 
             key={todo.id} 
             style={{ 
+              display: 'flex',
+              alignItems: 'center',
               padding: '10px',
               borderBottom: '1px solid #eee',
-              textDecoration: todo.completed ? 'line-through' : 'none',
-              color: todo.completed ? '#888' : '#ececec'
+              gap: '10px'
             }}
           >
-            {todo.title}
+            <input 
+              type="checkbox" 
+              checked={todo.completed}
+              onChange={() => upd_mutation.mutate({ id: todo.id, completed: !todo.completed })}
+            />
+
+            <span style={{ 
+              flex: 1,
+              textDecoration: todo.completed ? 'line-through' : 'none',
+              color: todo.completed ? '#888' : '#ececec'
+            }}>
+              {todo.title}
+            </span>
+
+            <button 
+              onClick={() => del_mutation.mutate(todo.id)}
+              style={{ 
+                padding: '4px 8px',
+                color: 'white', 
+                border: 'none', 
+                cursor: 'pointer'
+              }}
+            >
+              Видалити
+            </button>
           </li>
         ))}
       </ul>
