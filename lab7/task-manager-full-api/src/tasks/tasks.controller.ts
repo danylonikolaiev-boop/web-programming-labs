@@ -2,93 +2,71 @@ import {
   Controller,
   Get,
   Post,
-  Delete,
   Body,
+  Patch,
   Param,
+  Delete,
   Query,
-} from "@nestjs/common";
-import type { Task } from "./entities/task.entity";
-import { CreateTaskDto } from "./dto/create-task.dto";
+  NotFoundException,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import { TasksService } from './tasks.service';
+import { CreateTaskDto } from './dto/create-task.dto';
 
-@Controller("tasks")
+@Controller('tasks')
 export class TasksController {
-  private tasks: Task[] = [
-    {
-        id: "1",
-        title: "Створити wireframes для головної сторінки",
-        description: "Розробити чорнові ескізи структури головної сторінки нового інтернет-магазину в Figma для узгодження з клієнтом.",
-        status: "done",
-        priority: "high",
-        createdAt: '2026-04-02T12:00:00.000Z' 
-    },
-    {
-        id: "2",
-        title: "Розробка UI-кіта (UI Kit)",
-        description: "Підібрати кольорову палітру, типографіку та створити базові компоненти (кнопки, інпути, картки товарів).",
-        status: "in-progress",
-        priority: "high",
-        createdAt: '2026-04-02T12:00:00.000Z' 
-    },
-    {
-        id: "3",
-        title: "А/В тестування кнопок CTA",
-        description: "Підготувати два варіанти дизайну кнопок Call-to-Action (різні кольори та розміщення) для перевірки конверсії.",
-        status: 'pending',
-        priority: "medium",
-        createdAt: '2026-04-02T12:00:00.000Z' 
-    }
-  ];
+  constructor(private readonly tasksService: TasksService) {}
 
   @Get()
-  findAll(): Task[] {
-    return this.tasks; 
+  findAll() {
+    return this.tasksService.findAll();
   }
 
-  @Get("search")
-  findByStatus(@Query("status") status?: string): Task[] {
+  @Get('search')
+  findByStatus(@Query('status') status?: string) {
     if (status) {
-      return this.tasks.filter((task) => task.status === status);
+      return this.tasksService.findByStatus(status);
     }
-    return this.tasks; 
+    return this.tasksService.findAll();
   }
 
-  @Get(":id")
-  findOne(@Param("id") id: string): Task | { message: string } {
-    const task = this.tasks.find((t) => t.id === id);
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    const task = this.tasksService.findOne(id);
     
     if (!task) {
-      return { message: `Задачу з id ${id} не знайдено` };
+      throw new NotFoundException(`Задачу з id ${id} не знайдено`);
     }
     
     return task;
   }
 
   @Post()
-  create(@Body() dto: CreateTaskDto): Task {
-    const newTask: Task = {
-      id: Date.now().toString(),
-      title: dto.title,
-      description: dto.description || "",
-      status: "pending",
-      priority: dto.priority,
-      createdAt: new Date().toISOString(),
-    };
-
-    this.tasks.push(newTask);
-    
-    return newTask; 
+  create(@Body() createTaskDto: CreateTaskDto) {
+    // Post автоматично повертає статус 201 Created
+    return this.tasksService.create(createTaskDto);
   }
 
-  @Delete(":id")
-  remove(@Param("id") id: string): { message: string } {
-    const taskIndex = this.tasks.findIndex((t) => t.id === id);
-
-    if (taskIndex === -1) {
-      return { message: `Задачу з id ${id} не знайдено` };
-    }
-
-    this.tasks.splice(taskIndex, 1);
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateTaskDto: any) {
+    const updatedTask = this.tasksService.update(id, updateTaskDto);
     
-    return { message: `Задачу з id ${id} успішно видалено` };
+    if (!updatedTask) {
+      throw new NotFoundException(`Задачу з id ${id} не знайдено`);
+    }
+    
+    return updatedTask;
+  }
+
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    const isDeleted = this.tasksService.remove(id);
+    
+    if (!isDeleted) {
+      throw new NotFoundException(`Задачу з id ${id} не знайдено`);
+    }
+    
   }
 }
