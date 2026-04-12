@@ -5,9 +5,30 @@ import { CreateTaskDto } from './dto/create-task.dto';
 @Injectable()
 export class TasksService {
   private tasks: Task[] = [
-    { id: '1', title: 'Вивчити основи NestJS', description: 'Пройти перші 5 етапів', status: 'done', priority: 'high', createdAt: '2026-04-01T10:00:00.000Z' },
-    { id: '2', title: 'Створити мод для Terraria', description: 'Додати боса', status: 'in-progress', priority: 'high', createdAt: '2026-04-02T12:00:00.000Z' },
-    { id: '3', title: 'Налаштувати сервер Minecraft', description: 'Локальне оточення', status: 'pending', priority: 'medium', createdAt: '2026-04-02T14:30:00.000Z' }
+    {
+        id: "1",
+        title: "Створити wireframes для головної сторінки",
+        description: "Розробити чорнові ескізи структури головної сторінки нового інтернет-магазину в Figma для узгодження з клієнтом.",
+        status: "done",
+        priority: "high",
+        createdAt: '2026-04-02T12:00:00.000Z' 
+    },
+    {
+        id: "2",
+        title: "Розробка UI-кіта (UI Kit)",
+        description: "Підібрати кольорову палітру, типографіку та створити базові компоненти (кнопки, інпути, картки товарів).",
+        status: "in-progress",
+        priority: "high",
+        createdAt: '2026-04-02T12:00:00.000Z' 
+    },
+    {
+        id: "3",
+        title: "А/В тестування кнопок CTA",
+        description: "Підготувати два варіанти дизайну кнопок Call-to-Action (різні кольори та розміщення) для перевірки конверсії.",
+        status: 'pending',
+        priority: "medium",
+        createdAt: '2026-04-02T12:00:00.000Z' 
+    }
   ];
 
   findAll(): Task[] {

@@ -8,11 +8,10 @@ import {
   Delete,
   Query,
   NotFoundException,
-  HttpCode,
-  HttpStatus,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 
 @Controller('tasks')
 export class TasksController {
@@ -44,12 +43,11 @@ export class TasksController {
 
   @Post()
   create(@Body() createTaskDto: CreateTaskDto) {
-    // Post автоматично повертає статус 201 Created
     return this.tasksService.create(createTaskDto);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTaskDto: any) {
+  update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
     const updatedTask = this.tasksService.update(id, updateTaskDto);
     
     if (!updatedTask) {
@@ -59,7 +57,6 @@ export class TasksController {
     return updatedTask;
   }
 
-  @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   remove(@Param('id') id: string) {
     const isDeleted = this.tasksService.remove(id);
