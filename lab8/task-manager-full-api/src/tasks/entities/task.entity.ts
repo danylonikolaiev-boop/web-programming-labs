@@ -1,11 +1,34 @@
-export type TaskStatus = "pending" | "in-progress" | "done";
-export type TaskPriority = "low" | "medium" | "high";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
+import { Tag } from '../../tags/entities/tag.entity';
 
-export interface Task {
-  id: string;
+@Entity('tasks')
+export class Task {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ length: 100 })
   title: string;
-  description: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-  createdAt: string;
+
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
+
+  @Column({ default: 'pending' })
+  status: 'pending' | 'in-progress' | 'done';
+
+  @Column({ default: 'medium' })
+  priority: 'low' | 'medium' | 'high';
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @ManyToMany(() => Tag, { onDelete: 'CASCADE' })
+  @JoinTable()
+  tags: Tag[];
 }
