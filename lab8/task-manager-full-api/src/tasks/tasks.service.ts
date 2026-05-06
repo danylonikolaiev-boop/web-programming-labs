@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { Task } from './entities/task.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Tag } from 'src/tags/entities/tag.entity';
+import { Repository, In } from 'typeorm';
+import { UpdateTaskDto } from './dto/update-task.dto';
 
 @Injectable()
 export class TasksService {
-  private tasks: Task[] = [
+  /*private tasks: Task[] = [
     {
         id: "1",
         title: "Створити wireframes для головної сторінки",
@@ -30,56 +34,59 @@ export class TasksService {
         createdAt: '2026-04-02T12:00:00.000Z' 
     }
   ];
+  */
 
-  findAll(): Task[] {
-    return this.tasks;
+  constructor(
+    @InjectRepository(Task)
+    private tasksRepository: Repository<Task>,
+    @InjectRepository(Tag)
+    private tagsRepository: Repository<Tag>,
+  ) {}
+
+  async findAll(): Promise<Task[]> {
+    return this.tasksRepository.find({ relations: ['tags'] });
   }
 
-  findByStatus(status: string): Task[] {
-    return this.tasks.filter((task) => task.status === status);
+  async findByStatus(status: any): Promise<Task[]> {
+    return this.tasksRepository.find({
+      where: { status },
+      relations: ['tags'],
+    });
   }
 
-  findOne(id: string): Task | null {
-    const task = this.tasks.find((t) => t.id === id);
-    return task || null; 
+  async findOne(id: number): Promise<Task | null> {
+    return this.tasksRepository.findOne({
+      where: { id },
+      relations: ['tags'],
+    });
   }
 
-  create(dto: CreateTaskDto): Task {
-    const newTask: Task = {
-      id: Date.now().toString(),
+  async create(dto: CreateTaskDto): Promise<Task> {
+    let tags: Tag[] = [];
+    if (dto.tagIds && dto.tagIds.length > 0) {
+      tags = await this.tagsRepository.findBy({ id: In(dto.tagIds) });
+    }
+
+    const newTask = this.tasksRepository.create({
       title: dto.title,
-      description: dto.description || "",
-      status: "pending",
+      description: dto.description,
       priority: dto.priority,
-      createdAt: new Date().toISOString(),
-    };
-    this.tasks.push(newTask);
-    return newTask;
+      tags: tags, 
+    });
+
+    return this.tasksRepository.save(newTask);
   }
 
-  update(id: string, dto: any): Task | null {
-    const taskIndex = this.tasks.findIndex((t) => t.id === id);
-    
-    if (taskIndex === -1) {
-      return null;
-    }
+  async update(id: number, dto: UpdateTaskDto): Promise<Task | null> {
+    const task = await this.findOne(id);
+    if (!task) return null;
 
-    this.tasks[taskIndex] = {
-      ...this.tasks[taskIndex],
-      ...dto,
-    };
-    
-    return this.tasks[taskIndex];
+    Object.assign(task, dto);
+    return this.tasksRepository.save(task);
   }
 
-  remove(id: string): boolean {
-    const taskIndex = this.tasks.findIndex((t) => t.id === id);
-    
-    if (taskIndex === -1) {
-      return false;
-    }
-
-    this.tasks.splice(taskIndex, 1);
-    return true;
+  async remove(id: number): Promise<boolean> {
+    const result = await this.tasksRepository.delete(id);
+    return result.affected !== 0;
   }
 }

@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, IsArray, IsNumber } from 'class-validator';
 
 export class CreateTaskDto {
   @IsString()
@@ -11,4 +11,9 @@ export class CreateTaskDto {
 
   @IsEnum(['low', 'medium', 'high'], { message: 'Пріоритет має бути low, medium або high' })
   priority: 'low' | 'medium' | 'high';
+
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  tagIds?: number[];
 }
