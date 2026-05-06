@@ -34,7 +34,7 @@ export class TasksController {
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const task = await this.tasksService.findOne(+id); // +id перетворює рядок на число
+    const task = await this.tasksService.findOne(+id);
     if (!task) throw new NotFoundException(`Задачу з id ${id} не знайдено`);
     return task;
   }

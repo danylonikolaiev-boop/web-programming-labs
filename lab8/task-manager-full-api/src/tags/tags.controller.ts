@@ -1,34 +1,37 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { 
+  Controller, Get, Post, Body, Patch, Param, Delete, 
+  HttpCode, HttpStatus, NotFoundException, BadRequestException 
+} from '@nestjs/common';
 import { TagsService } from './tags.service';
-import { CreateTagDto } from './dto/create-tag.dto';
-import { UpdateTagDto } from './dto/update-tag.dto';
 
 @Controller('tags')
 export class TagsController {
   constructor(private readonly tagsService: TagsService) {}
 
   @Post()
-  create(@Body() createTagDto: CreateTagDto) {
-    return this.tagsService.create(createTagDto);
+  async create(@Body('name') name: string) {
+    if (!name) throw new BadRequestException('Ім\'я тега є обов\'язковим');
+    return await this.tagsService.create(name);
   }
 
   @Get()
-  findAll() {
-    return this.tagsService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.tagsService.findOne(+id);
+  async findAll() {
+    return await this.tagsService.findAll();
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTagDto: UpdateTagDto) {
-    return this.tagsService.update(+id, updateTagDto);
+  async update(@Param('id') id: string, @Body('name') name: string) {
+    if (!name) throw new BadRequestException('Ім\'я тега є обов\'язковим');
+    const updatedTag = await this.tagsService.update(+id, name);
+    
+    if (!updatedTag) throw new NotFoundException(`Тег з id ${id} не знайдено`);
+    return updatedTag;
   }
 
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.tagsService.remove(+id);
+  async remove(@Param('id') id: string) {
+    const isDeleted = await this.tagsService.remove(+id);
+    if (!isDeleted) throw new NotFoundException(`Тег з id ${id} не знайдено`);
   }
 }
