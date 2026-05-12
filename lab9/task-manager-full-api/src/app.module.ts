@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { TasksModule } from './tasks/tasks.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TagsModule } from './tags/tags.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { TagsModule } from './tags/tags.module';
     }),
     TasksModule,
     TagsModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
