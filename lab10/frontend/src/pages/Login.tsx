@@ -1,0 +1,1 @@
+export const Login = () => <div>Сторінка Логіну</div>;
