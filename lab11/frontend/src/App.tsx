@@ -1,122 +1,162 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState, useEffect, type ChangeEvent, type FormEvent } from 'react';
+import axios, { AxiosError } from 'axios';
+import './App.css';
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreviewUrl(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(selectedFile);
+    setPreviewUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [selectedFile]);
+
+  const handleFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
+    setError(null);
+    setUploadedImageUrl(null);
+    setProgress(0);
+
+    const file = event.target.files?.[0];
+    if (!file) {
+      setSelectedFile(null);
+      return;
+    }
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setError('Дозволені лише зображення (JPEG, PNG, WEBP).');
+      setSelectedFile(null);
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setError('Розмір файлу не повинен перевищувати 5 МБ.');
+      setSelectedFile(null);
+      return;
+    }
+
+    setSelectedFile(file);
+  };
+
+  const handleUpload = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!selectedFile) return;
+
+    setError(null);
+    setIsUploading(true);
+    setProgress(0);
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      
+      const response = await axios.post(`${apiUrl}/files`, formData, {
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setProgress(percentCompleted);
+          }
+        },
+      });
+
+      setUploadedImageUrl(response.data.url);
+      setSelectedFile(null);
+    } catch (err) {
+      const axiosError = err as AxiosError<{ message: string | string[] }>;
+      const serverMessage = axiosError.response?.data?.message;
+      setError(
+        Array.isArray(serverMessage) 
+          ? serverMessage.join(', ') 
+          : serverMessage || 'Сталася помилка при завантаженні файлу на сервер.'
+      );
+      setProgress(0);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="container">
+      <header>
+        <h1>Завантаження зображення</h1>
+      </header>
 
-      <div className="ticks"></div>
+      <main>
+        <div className="upload-card">
+          <form onSubmit={handleUpload}>
+            <div className="file-input-wrapper">
+              <label htmlFor="file-input" className="file-label">
+                {selectedFile ? 'Обрати інше зображення' : 'Обрати зображення'}
+              </label>
+              <input
+                id="file-input"
+                type="file"
+                accept="image/jpeg, image/png, image/webp"
+                onChange={handleFileSelect}
+                disabled={isUploading}
+              />
+            </div>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+            {error && <div className="error-message">{error}</div>}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+            {previewUrl && selectedFile && (
+              <div className="preview-container">
+                <img src={previewUrl} alt="Preview" className="image-preview" />
+                <div className="file-info">
+                  <span className="truncate">{selectedFile.name}</span>
+                  <span>{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</span>
+                </div>
+              </div>
+            )}
+
+            {isUploading && (
+              <div className="progress-container">
+                <div className="progress-bar" style={{ width: `${progress}%` }}></div>
+                <div className="progress-text">{progress}%</div>
+              </div>
+            )}
+
+            <button 
+              type="submit" 
+              className="upload-button"
+              disabled={!selectedFile || !!error || isUploading}
+            >
+              {isUploading ? 'Завантаження...' : 'Відправити на сервер'}
+            </button>
+          </form>
+        </div>
+
+        {uploadedImageUrl && (
+          <div className="success-card">
+            <h2>Успішно завантажено</h2>
+            <div className="result-image-container">
+              <img src={uploadedImageUrl} alt="Uploaded result" className="result-image" />
+            </div>
+            <a href={uploadedImageUrl} target="_blank" rel="noreferrer" className="result-link">
+              Відкрити оригінал по URL
+            </a>
+          </div>
+        )}
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;
