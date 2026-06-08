@@ -10,6 +10,9 @@ export interface FileMetadata {
 
 @Injectable()
 export class AppService {
+  getHello(): string {
+    throw new Error('Method not implemented.');
+  }
   private readonly filesMetadata: FileMetadata[] = [];
 
   saveFileMetadata(file: Express.Multer.File): FileMetadata {
