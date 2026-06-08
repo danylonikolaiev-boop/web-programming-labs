@@ -10,7 +10,6 @@ import { join } from 'path';
 })
 export class FilesModule {
   constructor() {
-    // Створюємо папку uploads, якщо вона ще не існує
     const uploadDir = join(process.cwd(), 'uploads');
     if (!existsSync(uploadDir)) {
       mkdirSync(uploadDir);

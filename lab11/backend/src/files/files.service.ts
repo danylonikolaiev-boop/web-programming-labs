@@ -12,7 +12,6 @@ export interface FileMetadata {
 
 @Injectable()
 export class FilesService {
-  // Зберігаємо метадані файлів у пам'яті (як сказано в завданні)
   private files: FileMetadata[] = [];
 
   saveFileMetadata(metadata: FileMetadata) {
@@ -29,7 +28,6 @@ export class FilesService {
     if (!existsSync(filePath)) {
       throw new NotFoundException('Файл не знайдено');
     }
-    // Повертаємо потік для читання файлу
     return createReadStream(filePath);
   }
 }
