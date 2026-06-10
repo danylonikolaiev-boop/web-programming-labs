@@ -15,16 +15,20 @@ services:
 
   backend:
     build: ./backend
-    depends_on:
-      db:
-        condition: service_healthy
+    container_name: lab12-nestjs-backend
+    ports:
+      - "3000:3000"
     environment:
       DB_HOST: db
+      DB_PORT: ${DB_PORT}
       DB_USERNAME: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
-    ports:
-      - "3000:3000"
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+    depends_on:
+      db:
+        condition: service_healthy
 
   frontend:
     build: ./frontend
